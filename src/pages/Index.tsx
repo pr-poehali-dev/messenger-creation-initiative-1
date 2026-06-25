@@ -102,7 +102,24 @@ const Index = () => {
   const [input, setInput] = useState('');
   const [calling, setCalling] = useState(false);
   const [callSeconds, setCallSeconds] = useState(0);
+  const [installPrompt, setInstallPrompt] = useState<{ prompt: () => void; userChoice: Promise<unknown> } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const install = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    setInstallPrompt(null);
+  };
 
   const activeChat = chats.find((c) => c.id === activeId)!;
   const filtered = chats.filter((c) =>
@@ -172,8 +189,17 @@ const Index = () => {
 
       {/* List */}
       <aside className="flex w-[340px] flex-col border-r border-border bg-card">
-        <header className="px-6 pb-3 pt-7">
+        <header className="flex items-center justify-between px-6 pb-3 pt-7">
           <h1 className="text-[26px] font-bold tracking-tight">Сообщения</h1>
+          {installPrompt && (
+            <button
+              onClick={install}
+              className="flex items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-accent-foreground transition-transform hover:scale-105 active:scale-95"
+            >
+              <Icon name="Download" size={14} />
+              Установить
+            </button>
+          )}
         </header>
         <div className="px-4 pb-3">
           <div className="flex items-center gap-2 rounded-2xl bg-secondary px-4 py-2.5">

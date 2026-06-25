@@ -1,0 +1,24 @@
+{
+  "name": "Мессенджер",
+  "short_name": "Мессенджер",
+  "description": "Минималистичный мессенджер с голосовыми вызовами",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#2f80ed",
+  "icons": [
+    {
+      "src": "https://cdn.poehali.dev/projects/ac0a3310-c8cb-4cf8-823d-78686f0a3b6b/files/460d4c6a-58f2-43a3-b1ff-98aeece5bf8f.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn.poehali.dev/projects/ac0a3310-c8cb-4cf8-823d-78686f0a3b6b/files/460d4c6a-58f2-43a3-b1ff-98aeece5bf8f.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
