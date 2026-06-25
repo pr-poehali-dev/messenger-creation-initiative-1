@@ -276,7 +276,7 @@ const SettingsPanel = () => {
         <div className="text-sm font-medium">{label}</div>
         {desc && <div className="text-xs text-muted-foreground">{desc}</div>}
       </div>
-      {right}
+      <div className="shrink-0">{right}</div>
     </div>
   );
 
