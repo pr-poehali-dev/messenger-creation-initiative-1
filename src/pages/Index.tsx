@@ -426,6 +426,7 @@ const Index = () => {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [groupName, setGroupName]             = useState('');
   const [groupMembers, setGroupMembers]       = useState<string[]>([]);
+  const [showGroupInfo, setShowGroupInfo]     = useState(false);
 
   // pwa
   const [installPrompt, setInstallPrompt] = useState<{ prompt: () => void; userChoice: Promise<unknown> } | null>(null);
@@ -444,7 +445,8 @@ const Index = () => {
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [activeChat?.messages.length, activeId]);
+    setShowGroupInfo(false);
+  }, [activeId]);
 
   useEffect(() => {
     if (!callMode) return;
@@ -709,13 +711,15 @@ const Index = () => {
           {/* header */}
           <header className="flex items-center justify-between border-b border-border px-7 py-4 shrink-0">
             <div className="flex items-center gap-3">
-              <div className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold ${activeChat.color}`}>
+              <button
+                onClick={() => activeChat.isGroup && setShowGroupInfo((p) => !p)}
+                className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold ${activeChat.color} ${activeChat.isGroup ? 'cursor-pointer hover:ring-2 hover:ring-primary/40 transition-all' : ''}`}>
                 {activeChat.isGroup ? <Icon name="Users" size={18} /> : activeChat.avatar}
-              </div>
+              </button>
               <div>
                 <div className="font-semibold leading-tight">{activeChat.name}</div>
                 <div className={`text-xs ${activeChat.online ? 'text-emerald-600' : 'text-muted-foreground'}`}>
-                  {activeChat.isGroup ? activeChat.members?.join(', ') : activeChat.status}
+                  {activeChat.isGroup ? `${activeChat.members?.length} участника` : activeChat.status}
                 </div>
               </div>
             </div>
@@ -736,6 +740,35 @@ const Index = () => {
               </button>
             </div>
           </header>
+
+          {/* Group info panel */}
+          {activeChat.isGroup && showGroupInfo && (
+            <div className="animate-fade-in border-b border-border bg-card px-7 py-5">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-sm font-semibold">Участники группы</span>
+                <button onClick={() => setShowGroupInfo(false)} className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Icon name="X" size={16} />
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {activeChat.members?.map((memberName) => {
+                  const contact = contacts.find((c) => c.name === memberName);
+                  return (
+                    <div key={memberName} className="flex items-center gap-2 rounded-2xl bg-secondary px-3 py-2">
+                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${contact?.color ?? 'bg-muted text-muted-foreground'}`}>
+                        {contact?.avatar ?? memberName.slice(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium leading-tight">{memberName}</div>
+                        {contact && <div className="text-xs text-muted-foreground">{contact.role}</div>}
+                      </div>
+                      {contact?.online && <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* messages */}
           <div ref={scrollRef} className="scrollbar-thin flex-1 space-y-2.5 overflow-y-auto px-7 py-6">
