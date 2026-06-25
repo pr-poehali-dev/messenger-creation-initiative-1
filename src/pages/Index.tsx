@@ -98,6 +98,276 @@ const initialContacts: Contact[] = [
   { id: 8, name: 'Роман Васильев',  avatar: 'РВ', color: 'bg-indigo-100 text-indigo-600',   phone: '+7 (999) 890-12-34', email: 'roman@example.com',  role: 'DevOps',           online: false },
 ];
 
+// ─── Profile Panel ────────────────────────────────────────────────────────────
+
+const ProfilePanel = () => {
+  const [editing, setEditing] = useState(false);
+  const [name,   setName]   = useState('Александр Волков');
+  const [status, setStatus] = useState('На связи');
+  const [phone,  setPhone]  = useState('+7 (999) 000-11-22');
+  const [email,  setEmail]  = useState('alex@example.com');
+  const [bio,    setBio]    = useState('Люблю создавать удобные продукты и общаться с командой 🚀');
+  const [saved,  setSaved]  = useState(false);
+
+  const save = () => { setEditing(false); setSaved(true); setTimeout(() => setSaved(false), 2000); };
+
+  const statusOptions = ['На связи', 'Занят', 'Не беспокоить', 'Отошёл', 'Невидимый'];
+  const statusColors: Record<string, string> = {
+    'На связи': 'bg-emerald-500', 'Занят': 'bg-amber-500',
+    'Не беспокоить': 'bg-red-500', 'Отошёл': 'bg-zinc-400', 'Невидимый': 'bg-zinc-300',
+  };
+
+  return (
+    <div className="scrollbar-thin flex-1 overflow-y-auto">
+      <div className="mx-auto max-w-xl px-8 py-10">
+        {/* Avatar block */}
+        <div className="mb-8 flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="flex h-28 w-28 items-center justify-center rounded-full bg-primary/10 text-5xl font-bold text-primary select-none">
+              АВ
+            </div>
+            <button className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md hover:scale-105 transition-transform">
+              <Icon name="Camera" size={16} />
+            </button>
+            <span className={`absolute bottom-0 left-0 h-4 w-4 rounded-full border-2 border-card ${statusColors[status]}`} />
+          </div>
+          <div className="text-center">
+            <h2 className="text-2xl font-bold">{name}</h2>
+            <p className="text-sm text-muted-foreground">{email}</p>
+          </div>
+          {saved && (
+            <span className="animate-fade-in rounded-full bg-emerald-50 px-4 py-1.5 text-xs font-semibold text-emerald-600">
+              ✓ Изменения сохранены
+            </span>
+          )}
+        </div>
+
+        {/* Info card */}
+        <div className="mb-4 rounded-3xl border border-border bg-card p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-semibold">Личные данные</h3>
+            <button
+              onClick={() => editing ? save() : setEditing(true)}
+              className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold transition-all ${editing ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground hover:bg-muted'}`}>
+              <Icon name={editing ? 'Check' : 'Pencil'} size={14} />
+              {editing ? 'Сохранить' : 'Изменить'}
+            </button>
+          </div>
+          <div className="space-y-4">
+            {[
+              { label: 'Имя', icon: 'User',      value: name,  set: setName,  placeholder: 'Ваше имя' },
+              { label: 'Телефон', icon: 'Phone',  value: phone, set: setPhone, placeholder: '+7 ...' },
+              { label: 'Email',   icon: 'Mail',   value: email, set: setEmail, placeholder: 'email@...' },
+            ].map(({ label, icon, value, set, placeholder }) => (
+              <div key={label} className="flex items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary">
+                  <Icon name={icon} size={16} className="text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-muted-foreground mb-0.5">{label}</div>
+                  {editing
+                    ? <input value={value} onChange={(e) => set(e.target.value)} placeholder={placeholder}
+                        className="w-full rounded-xl bg-secondary px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring/30" />
+                    : <div className="text-sm font-medium">{value}</div>
+                  }
+                </div>
+              </div>
+            ))}
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary mt-0.5">
+                <Icon name="AlignLeft" size={16} className="text-muted-foreground" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-muted-foreground mb-0.5">О себе</div>
+                {editing
+                  ? <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3}
+                      className="w-full resize-none rounded-xl bg-secondary px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring/30" />
+                  : <div className="text-sm leading-relaxed">{bio}</div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Status */}
+        <div className="mb-4 rounded-3xl border border-border bg-card p-6">
+          <h3 className="mb-3 font-semibold">Статус</h3>
+          <div className="flex flex-wrap gap-2">
+            {statusOptions.map((s) => (
+              <button key={s} onClick={() => setStatus(s)}
+                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${status === s ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-muted'}`}>
+                <span className={`h-2 w-2 rounded-full ${statusColors[s]}`} />
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="mb-4 grid grid-cols-3 gap-3">
+          {[
+            { label: 'Сообщений', value: '1 284', icon: 'MessageCircle' },
+            { label: 'Контактов',  value: '8',     icon: 'Users' },
+            { label: 'Групп',      value: '2',     icon: 'UsersRound' },
+          ].map(({ label, value, icon }) => (
+            <div key={label} className="flex flex-col items-center gap-1 rounded-2xl border border-border bg-card py-4">
+              <Icon name={icon} size={20} className="text-primary mb-1" />
+              <div className="text-xl font-bold">{value}</div>
+              <div className="text-xs text-muted-foreground">{label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Danger zone */}
+        <div className="rounded-3xl border border-red-100 bg-red-50/50 p-5">
+          <h3 className="mb-3 text-sm font-semibold text-red-700">Опасная зона</h3>
+          <div className="flex flex-col gap-2">
+            <button className="flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm text-red-600 hover:bg-red-100 transition-colors text-left">
+              <Icon name="LogOut" size={16} /> Выйти из аккаунта
+            </button>
+            <button className="flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm text-red-600 hover:bg-red-100 transition-colors text-left">
+              <Icon name="Trash2" size={16} /> Удалить аккаунт
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Settings Panel ───────────────────────────────────────────────────────────
+
+const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
+  <button onClick={onChange}
+    className={`relative h-6 w-11 rounded-full transition-colors ${checked ? 'bg-primary' : 'bg-border'}`}>
+    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`} />
+  </button>
+);
+
+const SettingsPanel = () => {
+  const [notifMessages, setNotifMessages]   = useState(true);
+  const [notifCalls,    setNotifCalls]      = useState(true);
+  const [notifGroups,   setNotifGroups]     = useState(true);
+  const [soundMsg,      setSoundMsg]        = useState(true);
+  const [soundCall,     setSoundCall]       = useState(true);
+  const [vibration,     setVibration]       = useState(true);
+  const [readReceipts,  setReadReceipts]    = useState(true);
+  const [lastSeen,      setLastSeen]        = useState(true);
+  const [onlineStatus,  setOnlineStatus]    = useState(true);
+  const [theme,         setTheme]           = useState<'light' | 'system'>('light');
+  const [fontSize,      setFontSize]        = useState<'small' | 'medium' | 'large'>('medium');
+  const [lang,          setLang]            = useState('ru');
+
+  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <div className="mb-4 rounded-3xl border border-border bg-card overflow-hidden">
+      <div className="border-b border-border px-6 py-4">
+        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">{title}</h3>
+      </div>
+      <div className="divide-y divide-border">{children}</div>
+    </div>
+  );
+
+  const Row = ({ icon, label, desc, right }: { icon: string; label: string; desc?: string; right: React.ReactNode }) => (
+    <div className="flex items-center gap-4 px-6 py-4">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary">
+        <Icon name={icon} size={17} className="text-muted-foreground" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium">{label}</div>
+        {desc && <div className="text-xs text-muted-foreground">{desc}</div>}
+      </div>
+      {right}
+    </div>
+  );
+
+  return (
+    <div className="scrollbar-thin flex-1 overflow-y-auto">
+      <div className="mx-auto max-w-xl px-8 py-10">
+        <h2 className="mb-6 text-2xl font-bold">Настройки</h2>
+
+        <Section title="Уведомления">
+          <Row icon="MessageCircle" label="Сообщения" desc="Уведомления о новых сообщениях"
+            right={<Toggle checked={notifMessages} onChange={() => setNotifMessages(p => !p)} />} />
+          <Row icon="Phone" label="Звонки" desc="Входящие голосовые и видеозвонки"
+            right={<Toggle checked={notifCalls} onChange={() => setNotifCalls(p => !p)} />} />
+          <Row icon="Users" label="Группы" desc="Сообщения в групповых чатах"
+            right={<Toggle checked={notifGroups} onChange={() => setNotifGroups(p => !p)} />} />
+        </Section>
+
+        <Section title="Звук и вибрация">
+          <Row icon="Volume2" label="Звук сообщений"
+            right={<Toggle checked={soundMsg} onChange={() => setSoundMsg(p => !p)} />} />
+          <Row icon="PhoneCall" label="Звук звонков"
+            right={<Toggle checked={soundCall} onChange={() => setSoundCall(p => !p)} />} />
+          <Row icon="Vibrate" label="Вибрация"
+            right={<Toggle checked={vibration} onChange={() => setVibration(p => !p)} />} />
+        </Section>
+
+        <Section title="Приватность">
+          <Row icon="CheckCheck" label="Подтверждение прочтения" desc="Собеседник видит, что вы прочли сообщение"
+            right={<Toggle checked={readReceipts} onChange={() => setReadReceipts(p => !p)} />} />
+          <Row icon="Clock" label="Время последнего визита" desc="Кто может видеть, когда вы были в сети"
+            right={<Toggle checked={lastSeen} onChange={() => setLastSeen(p => !p)} />} />
+          <Row icon="Eye" label="Статус «в сети»" desc="Показывать собеседникам, что вы онлайн"
+            right={<Toggle checked={onlineStatus} onChange={() => setOnlineStatus(p => !p)} />} />
+        </Section>
+
+        <Section title="Внешний вид">
+          <Row icon="Sun" label="Тема оформления"
+            right={
+              <div className="flex rounded-xl bg-secondary p-1 gap-1">
+                {(['light', 'system'] as const).map((t) => (
+                  <button key={t} onClick={() => setTheme(t)}
+                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${theme === t ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>
+                    {t === 'light' ? 'Светлая' : 'Системная'}
+                  </button>
+                ))}
+              </div>
+            } />
+          <Row icon="Type" label="Размер шрифта"
+            right={
+              <div className="flex rounded-xl bg-secondary p-1 gap-1">
+                {(['small', 'medium', 'large'] as const).map((f) => (
+                  <button key={f} onClick={() => setFontSize(f)}
+                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${fontSize === f ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>
+                    {f === 'small' ? 'Мал' : f === 'medium' ? 'Средний' : 'Большой'}
+                  </button>
+                ))}
+              </div>
+            } />
+        </Section>
+
+        <Section title="Язык и регион">
+          <Row icon="Globe" label="Язык интерфейса"
+            right={
+              <select value={lang} onChange={(e) => setLang(e.target.value)}
+                className="rounded-xl bg-secondary px-3 py-1.5 text-sm outline-none">
+                <option value="ru">Русский</option>
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+              </select>
+            } />
+        </Section>
+
+        <Section title="Данные и хранилище">
+          <Row icon="HardDrive" label="Использование памяти" desc="Кэш: 24 МБ"
+            right={<button className="rounded-full bg-secondary px-4 py-1.5 text-xs font-medium hover:bg-muted transition-colors">Очистить</button>} />
+          <Row icon="Download" label="Автозагрузка медиа" desc="Фото, видео, документы"
+            right={<Toggle checked={true} onChange={() => {}} />} />
+        </Section>
+
+        <Section title="О приложении">
+          <Row icon="Info" label="Версия" desc="1.0.0" right={<span className="text-xs text-muted-foreground">актуальная</span>} />
+          <Row icon="Shield" label="Политика конфиденциальности" right={<Icon name="ChevronRight" size={16} className="text-muted-foreground" />} />
+          <Row icon="FileText" label="Условия использования" right={<Icon name="ChevronRight" size={16} className="text-muted-foreground" />} />
+        </Section>
+      </div>
+    </div>
+  );
+};
+
+// ─── Nav ──────────────────────────────────────────────────────────────────────
+
 const navItems = [
   { id: 'chats',    icon: 'MessageCircle', label: 'Чаты' },
   { id: 'contacts', icon: 'Users',         label: 'Контакты' },
@@ -519,15 +789,11 @@ const Index = () => {
           </footer>
         </>}
 
-        {/* Other nav placeholders */}
-        {(activeNav === 'profile' || activeNav === 'settings') && (
-          <div className="flex flex-1 items-center justify-center text-muted-foreground">
-            <div className="text-center">
-              <Icon name={activeNav === 'profile' ? 'User' : 'Settings'} size={48} className="mx-auto mb-3 opacity-20" />
-              <p className="text-sm">Раздел в разработке</p>
-            </div>
-          </div>
-        )}
+        {/* ── Profile ── */}
+        {activeNav === 'profile' && <ProfilePanel />}
+
+        {/* ── Settings ── */}
+        {activeNav === 'settings' && <SettingsPanel />}
       </main>
 
       {/* ── Voice call overlay ── */}
