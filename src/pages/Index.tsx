@@ -254,9 +254,24 @@ const SettingsPanel = () => {
   const [readReceipts,  setReadReceipts]    = useState(true);
   const [lastSeen,      setLastSeen]        = useState(true);
   const [onlineStatus,  setOnlineStatus]    = useState(true);
-  const [theme,         setTheme]           = useState<'light' | 'system'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
+    return (localStorage.getItem('theme') as 'light' | 'dark' | 'system') ?? 'light';
+  });
   const [fontSize,      setFontSize]        = useState<'small' | 'medium' | 'large'>('medium');
   const [lang,          setLang]            = useState('ru');
+
+  useEffect(() => {
+    const root = document.documentElement;
+    localStorage.setItem('theme', theme);
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else if (theme === 'light') {
+      root.classList.remove('dark');
+    } else {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      root.classList.toggle('dark', prefersDark);
+    }
+  }, [theme]);
 
   const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
     <div className="mb-4 rounded-3xl border border-border bg-card overflow-hidden">
@@ -316,10 +331,10 @@ const SettingsPanel = () => {
           <Row icon="Sun" label="Тема оформления"
             right={
               <div className="flex rounded-xl bg-secondary p-1 gap-1">
-                {(['light', 'system'] as const).map((t) => (
+                {(['light', 'dark', 'system'] as const).map((t) => (
                   <button key={t} onClick={() => setTheme(t)}
-                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${theme === t ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>
-                    {t === 'light' ? 'Светлая' : 'Системная'}
+                    className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${theme === t ? 'bg-card shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+                    {t === 'light' ? '☀️ Светлая' : t === 'dark' ? '🌙 Тёмная' : '⚙️ Авто'}
                   </button>
                 ))}
               </div>
