@@ -87,6 +87,28 @@ const initialChats: Chat[] = [
   },
 ];
 
+type Contact = {
+  id: number;
+  name: string;
+  avatar: string;
+  color: string;
+  phone: string;
+  email: string;
+  role: string;
+  online: boolean;
+};
+
+const initialContacts: Contact[] = [
+  { id: 1, name: 'Анна Соколова',    avatar: 'АС', color: 'bg-rose-100 text-rose-600',    phone: '+7 (999) 123-45-67', email: 'anna@example.com',    role: 'Дизайнер',           online: true  },
+  { id: 2, name: 'Дмитрий Орлов',   avatar: 'ДО', color: 'bg-blue-100 text-blue-600',    phone: '+7 (999) 234-56-78', email: 'dmitry@example.com',  role: 'Разработчик',        online: false },
+  { id: 3, name: 'Мария Лебедева',  avatar: 'МЛ', color: 'bg-emerald-100 text-emerald-600', phone: '+7 (999) 345-67-89', email: 'maria@example.com', role: 'Менеджер проекта',   online: true  },
+  { id: 4, name: 'Игорь Петров',    avatar: 'ИП', color: 'bg-violet-100 text-violet-600', phone: '+7 (999) 456-78-90', email: 'igor@example.com',    role: 'Директор',           online: false },
+  { id: 5, name: 'Светлана Козлова',avatar: 'СК', color: 'bg-pink-100 text-pink-600',    phone: '+7 (999) 567-89-01', email: 'sveta@example.com',   role: 'Маркетолог',         online: true  },
+  { id: 6, name: 'Алексей Смирнов', avatar: 'АС', color: 'bg-orange-100 text-orange-600',phone: '+7 (999) 678-90-12', email: 'alexey@example.com',  role: 'Аналитик',           online: false },
+  { id: 7, name: 'Екатерина Новак', avatar: 'ЕН', color: 'bg-teal-100 text-teal-600',    phone: '+7 (999) 789-01-23', email: 'kate@example.com',    role: 'QA-инженер',         online: true  },
+  { id: 8, name: 'Роман Васильев',  avatar: 'РВ', color: 'bg-indigo-100 text-indigo-600',phone: '+7 (999) 890-12-34', email: 'roman@example.com',   role: 'DevOps',             online: false },
+];
+
 const navItems = [
   { id: 'chats', icon: 'MessageCircle', label: 'Чаты' },
   { id: 'contacts', icon: 'Users', label: 'Контакты' },
@@ -103,6 +125,11 @@ const Index = () => {
   const [calling, setCalling] = useState(false);
   const [callSeconds, setCallSeconds] = useState(0);
   const [installPrompt, setInstallPrompt] = useState<{ prompt: () => void; userChoice: Promise<unknown> } | null>(null);
+  const [contacts, setContacts] = useState<Contact[]>(initialContacts);
+  const [contactSearch, setContactSearch] = useState('');
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [showAddContact, setShowAddContact] = useState(false);
+  const [newContact, setNewContact] = useState({ name: '', phone: '', email: '', role: '' });
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -161,6 +188,28 @@ const Index = () => {
 
   const fmtCall = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+
+  const addContact = () => {
+    if (!newContact.name.trim()) return;
+    const initials = newContact.name.trim().split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+    const colors = ['bg-rose-100 text-rose-600','bg-blue-100 text-blue-600','bg-emerald-100 text-emerald-600','bg-violet-100 text-violet-600','bg-amber-100 text-amber-600'];
+    const color = colors[contacts.length % colors.length];
+    setContacts((prev) => [...prev, { id: Date.now(), name: newContact.name.trim(), avatar: initials, color, phone: newContact.phone, email: newContact.email, role: newContact.role, online: false }]);
+    setNewContact({ name: '', phone: '', email: '', role: '' });
+    setShowAddContact(false);
+  };
+
+  const filteredContacts = contacts.filter((c) =>
+    c.name.toLowerCase().includes(contactSearch.toLowerCase()) ||
+    c.role.toLowerCase().includes(contactSearch.toLowerCase())
+  );
+
+  const grouped = filteredContacts.reduce<Record<string, Contact[]>>((acc, c) => {
+    const letter = c.name[0].toUpperCase();
+    if (!acc[letter]) acc[letter] = [];
+    acc[letter].push(c);
+    return acc;
+  }, {});
 
   return (
     <div className="flex h-screen w-full bg-secondary/40 text-foreground antialiased">
@@ -248,8 +297,167 @@ const Index = () => {
         </div>
       </aside>
 
+      {/* Contacts panel */}
+      {activeNav === 'contacts' && (
+        <main className="flex flex-1 flex-col bg-background">
+          <header className="flex items-center justify-between border-b border-border px-7 py-5">
+            <h2 className="text-xl font-bold">Контакты</h2>
+            <button
+              onClick={() => setShowAddContact(true)}
+              className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-transform hover:scale-105 active:scale-95"
+            >
+              <Icon name="UserPlus" size={16} />
+              Добавить
+            </button>
+          </header>
+
+          <div className="flex flex-1 overflow-hidden">
+            {/* Contact list */}
+            <div className="scrollbar-thin w-80 shrink-0 overflow-y-auto border-r border-border px-4 py-4">
+              <div className="mb-3 flex items-center gap-2 rounded-2xl bg-secondary px-4 py-2.5">
+                <Icon name="Search" size={16} className="text-muted-foreground" />
+                <input
+                  value={contactSearch}
+                  onChange={(e) => setContactSearch(e.target.value)}
+                  placeholder="Поиск контактов..."
+                  className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                />
+              </div>
+              <p className="mb-3 text-xs text-muted-foreground">{contacts.length} контактов</p>
+              {Object.keys(grouped).sort().map((letter) => (
+                <div key={letter}>
+                  <div className="mb-1 mt-3 px-2 text-xs font-semibold text-muted-foreground">{letter}</div>
+                  {grouped[letter].map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => setSelectedContact(c)}
+                      className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors ${selectedContact?.id === c.id ? 'bg-accent' : 'hover:bg-secondary'}`}
+                    >
+                      <div className="relative shrink-0">
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${c.color}`}>{c.avatar}</div>
+                        {c.online && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background bg-emerald-500" />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium">{c.name}</div>
+                        <div className="truncate text-xs text-muted-foreground">{c.role}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+
+            {/* Contact detail */}
+            <div className="flex flex-1 flex-col items-center justify-center p-10">
+              {selectedContact ? (
+                <div className="animate-fade-in w-full max-w-sm">
+                  <div className="mb-6 flex flex-col items-center gap-3">
+                    <div className={`flex h-24 w-24 items-center justify-center rounded-full text-3xl font-bold ${selectedContact.color}`}>
+                      {selectedContact.avatar}
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-2xl font-bold">{selectedContact.name}</h3>
+                      <p className="text-muted-foreground">{selectedContact.role}</p>
+                      {selectedContact.online && (
+                        <span className="mt-1 inline-flex items-center gap-1 text-xs text-emerald-600">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                          в сети
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mb-6 flex justify-center gap-3">
+                    <button
+                      onClick={() => { setActiveNav('chats'); const chat = chats.find((ch) => ch.name === selectedContact.name); if (chat) setActiveId(chat.id); }}
+                      className="flex h-12 w-12 flex-col items-center justify-center rounded-2xl bg-accent text-accent-foreground transition-transform hover:scale-105"
+                    >
+                      <Icon name="MessageCircle" size={20} />
+                    </button>
+                    <button
+                      onClick={() => { setCalling(true); setCallSeconds(0); }}
+                      className="flex h-12 w-12 flex-col items-center justify-center rounded-2xl bg-accent text-accent-foreground transition-transform hover:scale-105"
+                    >
+                      <Icon name="Phone" size={20} />
+                    </button>
+                    <button
+                      onClick={() => setContacts((prev) => prev.filter((c) => c.id !== selectedContact.id)) || setSelectedContact(null)}
+                      className="flex h-12 w-12 flex-col items-center justify-center rounded-2xl bg-red-50 text-red-500 transition-transform hover:scale-105"
+                    >
+                      <Icon name="Trash2" size={20} />
+                    </button>
+                  </div>
+                  <div className="space-y-3 rounded-3xl bg-secondary p-5">
+                    {selectedContact.phone && (
+                      <div className="flex items-center gap-3">
+                        <Icon name="Phone" size={16} className="text-muted-foreground" />
+                        <span className="text-sm">{selectedContact.phone}</span>
+                      </div>
+                    )}
+                    {selectedContact.email && (
+                      <div className="flex items-center gap-3">
+                        <Icon name="Mail" size={16} className="text-muted-foreground" />
+                        <span className="text-sm">{selectedContact.email}</span>
+                      </div>
+                    )}
+                    {selectedContact.role && (
+                      <div className="flex items-center gap-3">
+                        <Icon name="Briefcase" size={16} className="text-muted-foreground" />
+                        <span className="text-sm">{selectedContact.role}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center text-muted-foreground">
+                  <Icon name="Users" size={48} className="mx-auto mb-3 opacity-20" />
+                  <p className="text-sm">Выберите контакт</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Add contact modal */}
+          {showAddContact && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 backdrop-blur-sm" onClick={() => setShowAddContact(false)}>
+              <div className="animate-fade-in w-full max-w-sm rounded-3xl bg-card p-7 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <h3 className="mb-5 text-lg font-bold">Новый контакт</h3>
+                <div className="space-y-3">
+                  {[
+                    { key: 'name', label: 'Имя *', placeholder: 'Иван Иванов', icon: 'User' },
+                    { key: 'phone', label: 'Телефон', placeholder: '+7 (999) 000-00-00', icon: 'Phone' },
+                    { key: 'email', label: 'Email', placeholder: 'ivan@example.com', icon: 'Mail' },
+                    { key: 'role', label: 'Должность', placeholder: 'Менеджер', icon: 'Briefcase' },
+                  ].map(({ key, label, placeholder, icon }) => (
+                    <div key={key}>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">{label}</label>
+                      <div className="flex items-center gap-2 rounded-2xl bg-secondary px-4 py-2.5">
+                        <Icon name={icon} size={15} className="shrink-0 text-muted-foreground" />
+                        <input
+                          value={newContact[key as keyof typeof newContact]}
+                          onChange={(e) => setNewContact((p) => ({ ...p, [key]: e.target.value }))}
+                          placeholder={placeholder}
+                          className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 flex gap-2">
+                  <button onClick={() => setShowAddContact(false)} className="flex-1 rounded-2xl bg-secondary py-2.5 text-sm font-medium transition-colors hover:bg-muted">
+                    Отмена
+                  </button>
+                  <button onClick={addContact} className="flex-1 rounded-2xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-transform hover:scale-105 active:scale-95">
+                    Добавить
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      )}
+
       {/* Conversation */}
-      <main className="flex flex-1 flex-col bg-background">
+      {activeNav !== 'contacts' && <main className="flex flex-1 flex-col bg-background">
         <header className="flex items-center justify-between border-b border-border px-7 py-4">
           <div className="flex items-center gap-3">
             <div className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold ${activeChat.color}`}>
@@ -317,7 +525,7 @@ const Index = () => {
             </button>
           </div>
         </footer>
-      </main>
+      </main>}
 
       {/* Call overlay */}
       {calling && (
